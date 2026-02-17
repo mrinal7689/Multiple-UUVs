@@ -20,7 +20,6 @@ from settings import (
 from entity_move import entity_move
 from entity_draw import entity_draw
 from world_nearest_target import nearest_target as nearest_target_fn
-from world_separation_force import separation_force as separation_force_fn
 from world_step import world_step as world_step_fn
 from world_draw import draw_world as draw_world_fn
 
@@ -76,11 +75,6 @@ class MultiTargetWorld:
     def nearest_target(self, hunter):
         return nearest_target_fn(self, hunter)
 
-    # ===============================
-    # SEPARATION FORCE (avoid clustering)
-    # ===============================
-    def separation_force(self, hunter):
-        return separation_force_fn(self, hunter)
 
     def step(self):
         world_step_fn(self)
