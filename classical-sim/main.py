@@ -10,7 +10,7 @@ def draw_hud(screen, world, clock):
     targets_text = font.render(f"Targets: {len(world.targets)}", True, TEXT_COLOR)
     captures_text = font.render(f"Captures: {world.captures}", True, TEXT_COLOR)
 
-    screen.blit(fps_text, (10, 10))
+    
     screen.blit(hunters_text, (10, 35))
     screen.blit(targets_text, (10, 60))
     screen.blit(captures_text, (10, 85))

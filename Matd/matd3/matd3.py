@@ -32,9 +32,9 @@ class MATD3:
         self.critic1_target.load_state_dict(self.critic1.state_dict())
         self.critic2_target.load_state_dict(self.critic2.state_dict())
 
-        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=1e-3)
-        self.critic1_optimizer = optim.Adam(self.critic1.parameters(), lr=1e-3)
-        self.critic2_optimizer = optim.Adam(self.critic2.parameters(), lr=1e-3)
+        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=3e-4)
+        self.critic1_optimizer = optim.Adam(self.critic1.parameters(), lr=3e-4)
+        self.critic2_optimizer = optim.Adam(self.critic2.parameters(), lr=3e-4)
 
         self.gamma = 0.99
         self.tau = 0.005
@@ -43,10 +43,15 @@ class MATD3:
         self.policy_delay = 2
 
         self.total_it = 0
-
-    def select_action(self, state):
+    def select_action(self, state, explore=False, noise_scale=0.1):
         state = torch.FloatTensor(state).unsqueeze(0)
-        return self.actor(state).detach().cpu().numpy()[0]
+        action = self.actor(state).detach().cpu().numpy()[0]
+
+        if explore:
+            noise = noise_scale * np.random.randn(self.action_dim)
+            action = action + noise
+
+        return np.clip(action, -1, 1)
 
     def train(self, replay_buffer, batch_size=64):
 
