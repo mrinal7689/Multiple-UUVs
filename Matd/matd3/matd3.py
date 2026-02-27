@@ -32,9 +32,9 @@ class MATD3:
         self.critic1_target.load_state_dict(self.critic1.state_dict())
         self.critic2_target.load_state_dict(self.critic2.state_dict())
 
-        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=1e-4)
-        self.critic1_optimizer = optim.Adam(self.critic1.parameters(), lr=1e-4)
-        self.critic2_optimizer = optim.Adam(self.critic2.parameters(), lr=1e-4)
+        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=3e-4)
+        self.critic1_optimizer = optim.Adam(self.critic1.parameters(), lr=3e-4)
+        self.critic2_optimizer = optim.Adam(self.critic2.parameters(), lr=3e-4)
 
         self.gamma = 0.99
         self.tau = 0.005
@@ -61,12 +61,13 @@ class MATD3:
         self.total_it += 1
 
         batch = replay_buffer.sample(batch_size)
-        states, actions, rewards, next_states = map(np.array, zip(*batch))
+        states, actions, rewards, next_states, dones = map(np.array, zip(*batch))
 
         states = torch.FloatTensor(states)
         actions = torch.FloatTensor(actions)
         rewards = torch.FloatTensor(rewards).unsqueeze(1)
         next_states = torch.FloatTensor(next_states)
+        dones = torch.FloatTensor(dones).unsqueeze(1)
 
         noise = (
             torch.randn_like(actions) * self.policy_noise
@@ -85,7 +86,8 @@ class MATD3:
         target_Q1 = self.critic1_target(next_states, next_actions)
         target_Q2 = self.critic2_target(next_states, next_actions)
         target_Q = torch.min(target_Q1, target_Q2)
-        target_Q = rewards + self.gamma * target_Q.detach()
+        # Zero out bootstrap term on terminal transitions
+        target_Q = rewards + self.gamma * (1.0 - dones) * target_Q.detach()
 
         current_Q1 = self.critic1(states, actions)
         current_Q2 = self.critic2(states, actions)

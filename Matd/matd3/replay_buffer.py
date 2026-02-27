@@ -9,6 +9,7 @@ class ReplayBuffer:
     def add(self, data):
         if len(self.storage) >= self.max_size:
             self.storage.pop(0)
+        # data is a tuple: (state, action, reward, next_state, done)
         self.storage.append(data)
 
     def sample(self, batch_size):
