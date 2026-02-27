@@ -32,14 +32,14 @@ class MATD3:
         self.critic1_target.load_state_dict(self.critic1.state_dict())
         self.critic2_target.load_state_dict(self.critic2.state_dict())
 
-        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=3e-4)
-        self.critic1_optimizer = optim.Adam(self.critic1.parameters(), lr=3e-4)
-        self.critic2_optimizer = optim.Adam(self.critic2.parameters(), lr=3e-4)
+        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=1e-4)
+        self.critic1_optimizer = optim.Adam(self.critic1.parameters(), lr=1e-4)
+        self.critic2_optimizer = optim.Adam(self.critic2.parameters(), lr=1e-4)
 
         self.gamma = 0.99
         self.tau = 0.005
-        self.policy_noise = 0.2
-        self.noise_clip = 0.5
+        self.policy_noise = 0.1
+        self.noise_clip = 0.3
         self.policy_delay = 2
 
         self.total_it = 0
