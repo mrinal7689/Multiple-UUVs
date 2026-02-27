@@ -6,22 +6,36 @@ from Matd.env import MultiAgentEnv
 from Matd.matd3.matd3 import MATD3
 
 
+# ===============================
+# CONFIG
+# ===============================
 NUM_AGENTS = 3
-STATE_DIM = 2
+N_TARGETS = 2
+STATE_DIM = 2 + (2 * N_TARGETS)
 ACTION_DIM = 2
 
-# Load environment
-env = MultiAgentEnv(n_agents=NUM_AGENTS, n_fish=2)
+WIDTH = 900
+HEIGHT = 600
 
-# Load trained agent
+
+# ===============================
+# LOAD ENV + MODEL
+# ===============================
+env = MultiAgentEnv(width=WIDTH, height=HEIGHT,
+                    n_uuv=NUM_AGENTS,
+                    n_targets=N_TARGETS)
+
 agent = MATD3(NUM_AGENTS, STATE_DIM, ACTION_DIM)
 agent.actor.load_state_dict(torch.load("matd3_actor.pth"))
 agent.actor.eval()
 
-# Pygame setup
+
+# ===============================
+# PYGAME SETUP
+# ===============================
 pygame.init()
-screen = pygame.display.set_mode((900, 600))
-pygame.display.set_caption("UUV Fish Hunting Simulation")
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Multi-UUV Hunting Simulation")
 clock = pygame.time.Clock()
 
 obs = env.reset()
@@ -31,32 +45,38 @@ print("Simulation started...")
 
 while running:
 
+    clock.tick(60)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
+    # -------- POLICY (NO NOISE) --------
     actions = []
     for i in range(NUM_AGENTS):
-        action = agent.select_action(obs[i])
+        action = agent.select_action(obs[i], explore=False)
         actions.append(action)
 
     obs, rewards, done = env.step(actions)
 
     # -------- RENDER --------
-    screen.fill((10, 10, 40))
+    screen.fill((15, 20, 40))
 
-    # Draw fish (yellow)
-    for f in env.fish:
-        pygame.draw.circle(screen, (255, 200, 0),
-                           (int(f.pos[0]), int(f.pos[1])), 6)
+    # Draw targets (red)
+    for target in env.targets:
+        pygame.draw.circle(screen, (255, 70, 70),
+                           (int(target.pos[0]), int(target.pos[1])), 10)
 
-    # Draw hunters (blue)
-    for hunter in env.hunters:
-        pygame.draw.circle(screen, (0, 180, 255),
-                           (int(hunter.pos[0]), int(hunter.pos[1])), 10)
+    # Draw hunters (green)
+    for uuv in env.uuvs:
+        pygame.draw.circle(screen, (0, 255, 120),
+                           (int(uuv.pos[0]), int(uuv.pos[1])), 12)
 
     pygame.display.update()
-    clock.tick(60)
+
+    # Reset episode when done
+    if done:
+        obs = env.reset()
 
 pygame.quit()
-print("Simulation Ended.")
+print("Simulation ended.")

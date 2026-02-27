@@ -20,7 +20,7 @@ class Target:
         ], dtype=np.float32)
 
     def move(self):
-        drift = np.random.uniform(-0.8, 0.8, size=2)
+        drift = np.random.uniform(-0.3, 0.3, size=2)
         self.pos += drift
         self.pos = np.clip(self.pos, [0, 0], [self.width, self.height])
 
@@ -31,7 +31,7 @@ class MultiAgentEnv:
         self.height = height
         self.n_uuv = n_uuv
         self.n_targets = n_targets
-        self.catch_radius = 25
+        self.catch_radius = 50
         self.reset()
 
     def reset(self):
@@ -78,13 +78,19 @@ class MultiAgentEnv:
             target = self.targets[self.assignments[i]]
             dist = np.linalg.norm(uuv.pos - target.pos)
 
+            # Better reward shaping - encourages consistent progress
             max_distance = np.sqrt(self.width**2 + self.height**2)
+            normalized_dist = np.clip(dist / max_distance, 0, 1)
+            distance_reward = (1.0 - normalized_dist) * 1.0  # Scaled to 1.0 max per step
 
-            # CLEAN REWARD
-            reward = 1.0 - (dist / max_distance)
+            # Minimal time penalty
+            time_penalty = -0.005
 
+            reward = distance_reward + time_penalty
+
+            # Success bonus for capturing target
             if dist < self.catch_radius:
-                reward += 3.0
+                reward += 5.0  # Meaningful success bonus
                 done = True
 
             rewards.append(reward)
